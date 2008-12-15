@@ -1,0 +1,15 @@
+About
+=====
+
+Create users from email address - username = email / password = email before @ / email = email.
+Export all email addresses to excel.
+
+
+Installation
+============
+
+Checkout and add
+
+...
+
+To urls.py.
