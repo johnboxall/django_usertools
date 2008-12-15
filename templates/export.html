@@ -1,0 +1,24 @@
+{% if data %}
+    <table>
+        <thead> 
+            {% for field in data.field_names %}
+                <th>{{ field }}</th>
+            {% endfor %}
+        </thead>
+        <tbody>
+            {% if data.flat %}
+                {% for value in data %}
+                    <tr><td>{{ value }}</td></tr>
+                {% endfor %}
+            {% else %}
+                {% for row in data %}
+                    <tr>
+                        {% for value in row %}
+                            <td>{{ value }}</td>
+                        {% endfor %}
+                    </tr>
+                {% endfor %}
+            {% endif %}
+        </tbody>
+    </table>
+{% endif %}
