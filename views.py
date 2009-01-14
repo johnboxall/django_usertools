@@ -42,7 +42,6 @@ def export(request):
 def tool(request, model_cls, form_cls, template, context=None, next="."):
     """ 
     """
-    if context
     context = context or ADMIN_CONTEXT
 
     if isinstance(model_cls, str):
