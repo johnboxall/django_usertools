@@ -1,26 +1,21 @@
 from django.template import RequestContext
 from django.core.urlresolvers import reverse
-from django.shortcuts import render_to_response, get_object_or_404
-from django.http import HttpResponse, HttpResponseRedirect, Http404
-from django.forms.models import BaseModelFormSet, modelformset_factory
-from django.contrib.auth.decorators import login_required
+from django.shortcuts import render_to_response
+from django.http import HttpResponseRedirect
 from django.contrib.auth.models import User
-from django.views.generic.create_update import delete_object
-from django.views.decorators.vary import vary_on_headers
-from django.views.decorators.cache import cache_page, never_cache
-from django.contrib.sites.models import Site
+from django.contrib.admin.views.decorators import staff_member_required
+from django.core.urlresolvers import get_mod_func
+from django import forms
 
-
-from usertools.forms import *
+from usertools.forms import UserForm, TransferFormBase, DuplicateFormBase
+from usertools.helpers import update_related_field
 
 ADMIN_CONTEXT = {'title':'User Tools'}
 
-@login_required
-def usertools(request, template="usertools.html", context=None, next=None, form_class=UserForm):
-    if context is None:
-        context = ADMIN_CONTEXT
-    else:
-        context = ADMIN_CONTEXT.update(context)
+@staff_member_required
+def usertools(request, template="usertools/usertools.html", context=None,
+              next=None, form_class=UserForm):
+    context = context or ADMIN_CONTEXT
     if request.method == "POST":
         form = form_class(request.POST)
         if form.is_valid():
@@ -32,8 +27,8 @@ def usertools(request, template="usertools.html", context=None, next=None, form_
         form = form_class()
     context['form'] = form    
     return render_to_response(template, context, RequestContext(request))
-    
-@login_required
+        
+@staff_member_required
 def export(request):
     data = User.objects.values_list('email', flat=True)
     context = {'data':data}
@@ -42,3 +37,41 @@ def export(request):
     response['Content-Disposition'] = 'attachment; filename=%s ' % filename
     response['Content-Type'] = 'application/vnd.ms-excel; charset=utf-8'
     return response
+
+@staff_member_required
+def tool(request, model_cls, form_cls, template, context=None, next="."):
+    """ 
+    """
+    if context
+    context = context or ADMIN_CONTEXT
+
+    if isinstance(model_cls, str):
+        mod_name, model_name = get_mod_func(model_cls)
+        model_cls = getattr(__import__(mod_name, {}, {}, ['']), model_name)
+        
+    class ToolForm(form_cls):
+        objs = forms.ModelMultipleChoiceField(model_cls._default_manager.all())
+
+    if request.method == "POST":
+        form = ToolForm(request.POST)
+        if form.is_valid():
+            form.save(request)
+            return HttpResponseRedirect(next)
+    else:
+        form = ToolForm()    
+    context['form'] = form
+    return render_to_response(template, context , RequestContext(request))
+
+def duplicate(request, model_cls):
+    """
+    put me in your url conf
+    
+    (r'^transfer/$', 'usertools.views.transfer', {'model_cls': 'blog.models.Post'})
+    
+    
+    """
+    return tool(request, model_cls, DuplicateFormBase, "usertools/tool.html")
+    
+def transfer(request, model_cls):
+    "put me in your url conf"
+    return tool(request, model_cls, TransferFormBase, "usertools/tool.html")
