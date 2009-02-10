@@ -7,6 +7,7 @@ from django.contrib.admin.models import LogEntry
 
 from usertools.helpers import update_related_field, duplicate
 
+
 USER_TYPE_ID = ContentType.objects.get(app_label="auth", model="user").id
 
 
