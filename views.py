@@ -39,7 +39,7 @@ def export(request):
     return response
 
 @staff_member_required
-def tool(request, model_cls, form_cls, template, context=None, next="."):
+def tool(request, model_cls, form_cls, template, context=None, next=".", **kwargs):
     """ 
     """
     context = context or ADMIN_CONTEXT
@@ -48,20 +48,21 @@ def tool(request, model_cls, form_cls, template, context=None, next="."):
         mod_name, model_name = get_mod_func(model_cls)
         model_cls = getattr(__import__(mod_name, {}, {}, ['']), model_name)
         
+    # ### How could you allow this to be overridden?
     class ToolForm(form_cls):
         objs = forms.ModelMultipleChoiceField(model_cls._default_manager.all())
 
     if request.method == "POST":
         form = ToolForm(request.POST)
         if form.is_valid():
-            form.save(request)
+            form.save(request, **kwargs)
             return HttpResponseRedirect(next)
     else:
         form = ToolForm()    
     context['form'] = form
     return render_to_response(template, context , RequestContext(request))
 
-def duplicate(request, model_cls):
+def duplicate(request, model_cls, duplicate_order=None, callback=None):
     """
     put me in your url conf
     
@@ -69,7 +70,7 @@ def duplicate(request, model_cls):
     
     
     """
-    return tool(request, model_cls, DuplicateFormBase, "usertools/tool.html")
+    return tool(request, model_cls, DuplicateFormBase, "usertools/tool.html", duplicate_order=duplicate_order)
     
 def transfer(request, model_cls):
     "put me in your url conf"

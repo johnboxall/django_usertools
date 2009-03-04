@@ -44,10 +44,12 @@ class TransferFormBase(AdminToolFormBase):
         request.user.message_set.create(message=message)
 
 class DuplicateFormBase(AdminToolFormBase):
-    def save(self, request):
+    def save(self, request, callback=None, **kwargs):
         objs = self.cleaned_data['objs']
         user = self.cleaned_data['user']
         for obj in objs:
-            duplicate(obj, user, "user")
+            dupe = duplicate(obj, user, "user", **kwargs)
+            if callback is not None:
+                callback(dupe)
         message = "Duplicate complete."
         request.user.message_set.create(message=message)
