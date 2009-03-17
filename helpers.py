@@ -51,6 +51,8 @@ def duplicate(obj, value, field, duplicate_order=None):
             if isinstance(f, ForeignKey) and f.rel.to in related_models:
                 fks.append(f)                
         # Replace each `sub_obj` with a duplicate.
+        if model not in collected_objs:
+            continue
         sub_obj = collected_objs[model]
         for pk_val, obj in sub_obj.iteritems():        
             for fk in fks:
