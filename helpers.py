@@ -20,13 +20,13 @@ def update_related_field(obj, value, field):
         cls._default_manager.filter(id__in=pk_list).update(**{field:value})
     return obj
 
-def duplicate(obj, value, field, duplicate_order=None):
+def duplicate(obj, value=None, field=None, duplicate_order=None):
     """
-    Duplicate all related objects of `obj` setting
-    `field` to `value`. If one of the duplicate
+    Duplicate all related objects of obj setting
+    field to value. If one of the duplicate
     objects has an FK to another duplicate object
     update that as well. Return the duplicate copy
-    of `obj`.
+    of obj.
     
     duplicate_order is a list of models which specify how
     the duplicate objects are saved. For complex objects
@@ -63,7 +63,8 @@ def duplicate(obj, value, field, duplicate_order=None):
                     setattr(obj, fk.name, dupe_obj)
             # Duplicate the object and save it.
             obj.id = None
-            setattr(obj, field, value)
+            if field is not None and value is not None:
+                setattr(obj, field, value)
             obj.save()
             if root_obj is None:
                 root_obj = obj
