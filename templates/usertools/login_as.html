@@ -1,0 +1,15 @@
+{% extends "admin/index.html" %}
+{% load i18n %}
+
+{% block breadcrumbs %}<div class="breadcrumbs"><a href="../../">{% trans "Home" %}</a> &rsaquo; {{ title }}</div>{% endblock %}
+
+{% block content %}
+<div id="content-main">
+    <div class="module">
+        <form action="." method="post">
+            {{ form }}
+            <input type="submit" value="Login As" />
+        </form>
+    </div>    
+</div>
+{% endblock %}

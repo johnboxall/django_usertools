@@ -54,7 +54,7 @@ def duplicate(obj, value=None, field=None, duplicate_order=None):
         if model not in collected_objs:
             continue
         sub_obj = collected_objs[model]
-        for pk_val, obj in sub_obj.iteritems():        
+        for pk_val, obj in sub_obj.iteritems():
             for fk in fks:
                 fk_value = getattr(obj, "%s_id" % fk.name)
                 # If this FK has been duplicated then point to the duplicate.
