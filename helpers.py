@@ -1,4 +1,5 @@
 from django.db.models.query import CollectedObjects
+from django.db.models.fields import FieldDoesNotExist
 from django.db.models.fields.related import ForeignKey
 from django.forms.models import model_to_dict
 
@@ -9,6 +10,8 @@ def update_related_field(obj, value, field):
     http://code.djangoproject.com/browser/django/trunk/django/db/models/query.py#L824
     
     """
+    # @@@ Could use .get_all_field_names .get_field_by_name instead of try/except.
+
     # Collect all related objects.
     collected_objs = CollectedObjects()
     obj._collect_sub_objects(collected_objs)
@@ -17,8 +20,16 @@ def update_related_field(obj, value, field):
     for cls in classes:
         items = collected_objs[cls].items()
         pk_list = [pk for pk, instance in items]
-        cls._default_manager.filter(id__in=pk_list).update(**{field:value})
-    return obj
+        try:
+            cls._default_manager.filter(id__in=pk_list).update(**{field: value})
+        except FieldDoesNotExist:
+            pass
+    
+    # @@@ Could return the reloaded object - no point in returning the original
+    # @@@ becuase it's values no longer reflect anything. 
+    # @@@ but this would mean another db query - if you want you can just reload
+    # @@@ it yourself???
+    # return obj._meta.cls._Default_manager.get(pk=obj.id)
 
 def duplicate(obj, value=None, field=None, duplicate_order=None):
     """
