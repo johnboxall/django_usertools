@@ -3,20 +3,16 @@ from django.db.models.fields import FieldDoesNotExist
 from django.db.models.fields.related import ForeignKey
 from django.forms.models import model_to_dict
 
+
 def update_related_field(obj, value, field):
     """
     Set `field` to `value` for all objects related to `obj`.
     Based on heavily off the delete object code:
-    http://code.djangoproject.com/browser/django/trunk/django/db/models/query.py#L824
-    
+    http://bit.ly/osrZf
     """
-    # @@@ Could use .get_all_field_names .get_field_by_name instead of try/except.
-
-    # Collect all related objects.
     collected_objs = CollectedObjects()
     obj._collect_sub_objects(collected_objs)
     classes = collected_objs.keys()
-    # Bulk update the objects for performance
     for cls in classes:
         items = collected_objs[cls].items()
         pk_list = [pk for pk, instance in items]
@@ -24,12 +20,6 @@ def update_related_field(obj, value, field):
             cls._default_manager.filter(id__in=pk_list).update(**{field: value})
         except FieldDoesNotExist:
             pass
-    
-    # @@@ Could return the reloaded object - no point in returning the original
-    # @@@ becuase it's values no longer reflect anything. 
-    # @@@ but this would mean another db query - if you want you can just reload
-    # @@@ it yourself???
-    # return obj._meta.cls._Default_manager.get(pk=obj.id)
 
 def duplicate(obj, value=None, field=None, duplicate_order=None):
     """
@@ -44,7 +34,6 @@ def duplicate(obj, value=None, field=None, duplicate_order=None):
     this can matter. Check to save if objects are being
     saved correctly and if not just pass in related objects
     in the order that they should be saved.
-    
     """
     collected_objs = CollectedObjects()
     obj._collect_sub_objects(collected_objs)
