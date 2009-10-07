@@ -5,7 +5,7 @@ from django.contrib.auth import login, get_backends
 from django.contrib.auth.models import User
 from django.contrib.contenttypes.models import ContentType
 
-from usertools.helpers import update_related_field, duplicate
+from usertools.helpers import update_related_fields, duplicate
 
 USER_TYPE_ID = ContentType.objects.get(app_label="auth", model="user").id
 
@@ -13,7 +13,7 @@ USER_TYPE_ID = ContentType.objects.get(app_label="auth", model="user").id
 class LoginAsForm(forms.Form):
     """
     Form that logins you in as User. You can restrict the Users by passing
-    a User queryset `qs` as a parameter.
+    a queryset `qs`.
     """
     user = forms.ModelChoiceField(User.objects.all())
     
@@ -23,21 +23,18 @@ class LoginAsForm(forms.Form):
         self.request = request
         if qs is not None:
             self.fields["user"].queryset = qs
-
-
+    
     def save(self):
         user = self.cleaned_data["user"]
-
-        # In lieu of a call to authenticate() - just do this.
+        
+        # In lieu of a call to authenticate()
         backend = get_backends()[0]
         user.backend = "%s.%s" % (backend.__module__, backend.__class__.__name__)
         login(self.request, user)
         
         message = "Logged in as %s" % self.request.user        
         self.request.user.message_set.create(message=message)
-        
-    
-    
+
 
 class UserForm(forms.Form):
     "Create a User from an email address."
@@ -51,26 +48,29 @@ class UserForm(forms.Form):
         request.user.message_set.create(message=message)        
         return user
 
+
 class AdminToolFormBase(forms.Form):
     "This must be subclassed to work."
-    user = forms.ModelChoiceField(User.objects.all())  # is this qs really dynamically calced?
-    
+    user = forms.ModelChoiceField(User.objects.all())
+
+
 class TransferFormBase(AdminToolFormBase):
     def save(self, request):
         objs = self.cleaned_data['objs']
         user = self.cleaned_data['user']
         for obj in objs:
             # Uses `update` so we need to pass in the `user.id`
-            update_related_field(obj, user.id, "user")
+            update_related_field(obj, {"user": user.id})
         message = "Transfer complete."
         request.user.message_set.create(message=message)
+
 
 class DuplicateFormBase(AdminToolFormBase):
     def save(self, request, callback=None, **kwargs):
         objs = self.cleaned_data['objs']
         user = self.cleaned_data['user']
         for obj in objs:
-            clone = duplicate(obj, user, "user", **kwargs)
+            clone = duplicate(obj, {"user": user}, **kwargs)
             if callable(callback):
                 callback(clone)
         message = "Duplicate complete."

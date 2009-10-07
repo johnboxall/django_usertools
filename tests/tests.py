@@ -4,11 +4,14 @@ from django.db import models
 from django.db.models.loading import load_app
 from django.test import TestCase
 
-from usertools.helpers import update_related_field
+from usertools.helpers import update_related_fields
 from usertools.tests.test_app.models import Author, Book, Chapter, Page
 
 
 class HelpersTest(TestCase):
+    # @@@ If I was really cool I'd put these in here.
+    # fixtures = []
+
     def setUp(self):
         self.old_INSTALLED_APPS = settings.INSTALLED_APPS
         settings.INSTALLED_APPS = (
@@ -21,8 +24,8 @@ class HelpersTest(TestCase):
     def tearDown(self):
         settings.INSTALLED_APPS = self.old_INSTALLED_APPS
 
-    def test_update_related_field(self):
-        "usertools.helpers.update_related_field: Update related object fields."
+    def test_update_related_fields(self):
+        "usertools.helpers.update_related_fields: Update related object fields."
         user1 = Author.objects.create(name="john")
         user2 = Author.objects.create(name="igor")
 
@@ -30,7 +33,7 @@ class HelpersTest(TestCase):
         chapter = Chapter.objects.create(user=user1, book=book, number=1)
         
         # update book/chapter for Igor.
-        update_related_field(book, user2.id, "user")
+        update_related_fields(book, {"user": user2.id})
 
         updated_book = user2.book_set.all()[0]
         updated_chapter = user2.chapter_set.all()[0]
@@ -40,7 +43,7 @@ class HelpersTest(TestCase):
             chapter=updated_chapter, number=1)
         
         # update book/chapter for John.
-        update_related_field(updated_book, user1.id, "user")
+        update_related_fields(updated_book, {"user": user1.id})
         
         self.assertEquals(user2.book_set.all().count(), 0)        
         self.assertEquals(user1.book_set.all().count(), 1)
