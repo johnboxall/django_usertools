@@ -13,16 +13,15 @@ from usertools.forms import UserForm, TransferFormBase, DuplicateFormBase, Login
 
 DEFAULT_CONTEXT = {'title':'User Tools'}
 
-    
+
 @staff_member_required
 def login_as(request, form_cls=LoginAsForm, template="usertools/login_as.html",
-             ctx=DEFAULT_CONTEXT, next=None, qs=None):
+             ctx=None, next=None, qs=None):
+    ctx = ctx or DEFAULT_CONTEXT.copy()
     form = form_cls(request.POST or None, request=request, qs=qs)
     if form.is_valid():
         form.save()
-        if next is None:
-            next = request.GET.get("next") or request.POST.get("next") or \
-                   settings.LOGIN_REDIRECT_URL
+        next = next or request.REQUEST.get("next") or settings.LOGIN_REDIRECT_URL
         return HttpResponseRedirect(next)
     
     ctx["form"] = form

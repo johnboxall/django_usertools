@@ -75,7 +75,7 @@ def duplicate(obj, update=None, model_order=None):
             
             # Duplicate the object and save it.
             sub_obj.id = None
-            for k, v in update:
+            for k, v in update.items():
                 setattr(sub_obj, k, v)
             sub_obj.save()
             if root_obj is None:

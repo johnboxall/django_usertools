@@ -7,6 +7,7 @@ from django.contrib.contenttypes.models import ContentType
 
 from usertools.helpers import update_related_fields, duplicate
 
+
 USER_TYPE_ID = ContentType.objects.get(app_label="auth", model="user").id
 
 
@@ -14,13 +15,20 @@ class LoginAsForm(forms.Form):
     """
     Form that logins you in as User. You can restrict the Users by passing
     a queryset `qs`.
+    
     """
-    user = forms.ModelChoiceField(User.objects.all())
+    # TODO: Be nice to use a ForeignKeyRawIdWidget here, but it
+    #       requires a rel parameter - how would we fake that?
+    user = forms.ModelChoiceField(queryset=User.objects.all())
     
     def __init__(self, data=None, files=None, request=None, qs=None, *args,
                  **kwargs):
         super(LoginAsForm, self).__init__(data=data, files=files, *args, **kwargs)
         self.request = request
+        
+        # Rendering a million users takes a while, so login by id.
+        self.fields["user"].widget = forms.TextInput()
+
         if qs is not None:
             self.fields["user"].queryset = qs
     
